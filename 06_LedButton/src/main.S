@@ -71,32 +71,52 @@ main:
 	bl   gpio_configure
 
 loop:
-	bl button
+	bl  button
 	cmp R1, #0x1
 	bne off
-	bl led_on
-	b loop
+	bl  on
+	b   loop
 off:
-	bl led_off
+	mov R2, #0x0000
+	bl  led_configure
+
+on:
+	mov  R2, #0x1000
+	bl  led_configure
 b loop
 
-led_on:
-	push {LR}
+led_configure:
+	push {R0, R1, R2, LR}
 	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_ODR]
-	movw R2, #0x1000
+	cmp  R2, #0x1
+	bne  turn_off
+	bl   turn_on
+turn_off:
+	and  R1, R2
+turn_on:
+	orr  R1, R2
+
+str  R1, [R0, #GPIOx_ODR]
+pop  {R0, R1, R2, PC}
+
+//led_on:
+	/*push {LR}
+	ldr  R0, =PORTC_BASE_ADDR
+	ldr  R1, [R0, #GPIOx_ODR]
+	mov  R2, #0x1000
 	orr  R1, R2
 	str  R1, [R0, #GPIOx_ODR]
-	pop  {PC}
+	pop  {PC}*/
 
-led_off:
+/*led_off:
 	push {LR}
 	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_ODR]
 	mov  R2, #0x0000
 	and  R1, R2
 	str  R1, [R0, #GPIOx_ODR]
-	pop  {PC}
+	pop  {PC}*/
 
 button:
 	push {LR}
