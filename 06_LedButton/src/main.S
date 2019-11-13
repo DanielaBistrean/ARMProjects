@@ -46,10 +46,23 @@ main:
 	mov  R2, #0b1000
 	bl   gpio_configure
 
+	// R4 - last button state
+	mov  R4, #0
+	// R3 - last led state (led is on)
+	mov  R3, #1
+
 loop:
-	bl   button
-	bl   led_onOff
-	b    loop
+	bl    button
+	cmp   R0, R4
+	beq   loop
+	mov   R4, R0
+	cmp   R0, #1
+	bne   loop
+	cmp   R3, #0
+	movne R0, #0
+	mov   R3, R0
+	bl    led_onOff
+	b     loop
 
 // inputs: R0 - parameter
 // R0 - turn on/off the led
