@@ -59,6 +59,7 @@ led_onOff:
 	push {R1, R3, LR}
 	ldr  R1, =PORTC_BASE_ADDR
 	ldr  R3, [R1, #GPIOx_ODR]
+	mvn  R0, R0
 	bfi  R3, R0, #12, #1
 	str  R3, [R1, #GPIOx_ODR]
 	pop  {R1, R3, PC}
@@ -68,6 +69,7 @@ button:
 	push {R1, R2, LR}
 	ldr  R1, =PORTA_BASE_ADDR
 	ldr  R0, [R1, #GPIOx_IDR]
+	mvn  R0, R0
 	mov  R2, #0x1
 	and  R0, R2
 	pop  {R1, R2, PC}
