@@ -30,35 +30,11 @@
 _start:
 main:
 	// PA0
-	mov R0, #0
-	bl gpio_clock_enable
+	mov  R0, #0
+	bl   gpio_clock_enable
 	// PC12
-	mov R0, #2
-	bl gpio_clock_enable
-
-	/*ldr  R0, =RCC_BASE_ADDR
-
-	ldr  R1, [R0, #RCC_APB2ENR]
-	mov  R2, #0x14
-	orr  R1, R2
-	str  R1, [R0, #RCC_APB2ENR]
-
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_CRH]
-	ldr  R2, =0xfff0ffff
-	and  R1, R2
-	ldr  R2, =0x00030000
-	orr  R1, R2
-	str  R1, [R0, #GPIOx_CRH]
-
-	ldr  R0, =PORTA_BASE_ADDR
-
-	ldr  R1, [R0, #GPIOx_CRL]
-	ldr  R2, =0xfffffff0
-	and  R1, R2
-	mov  R2, #0x8
-	orr  R1, R2
-	str  R1, [R0, #GPIOx_CRL]*/
+	mov  R0, #2
+	bl   gpio_clock_enable
 
 	mov  R0, #2
 	mov  R1, #12
@@ -71,60 +47,30 @@ main:
 	bl   gpio_configure
 
 loop:
-	bl  button
-	cmp R1, #0x1
-	bne off
-	bl  on
-	b   loop
-off:
-	mov R2, #0x0000
-	bl  led_configure
+	bl   button
+	bl   led_onOff
+	b    loop
 
-on:
-	mov  R2, #0x1000
-	bl  led_configure
-b loop
+// inputs: R0 - parameter
+// R0 - turn on/off the led
+//    - on ->  0x1
+//    - off -> 0x0
+led_onOff:
+	push {R1, R3, LR}
+	ldr  R1, =PORTC_BASE_ADDR
+	ldr  R3, [R1, #GPIOx_ODR]
+	bfi  R3, R0, #12, #1
+	str  R3, [R1, #GPIOx_ODR]
+	pop  {R1, R3, PC}
 
-led_configure:
-	push {R0, R1, R2, LR}
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_ODR]
-	cmp  R2, #0x1
-	bne  turn_off
-	bl   turn_on
-turn_off:
-	and  R1, R2
-turn_on:
-	orr  R1, R2
-
-str  R1, [R0, #GPIOx_ODR]
-pop  {R0, R1, R2, PC}
-
-//led_on:
-	/*push {LR}
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_ODR]
-	mov  R2, #0x1000
-	orr  R1, R2
-	str  R1, [R0, #GPIOx_ODR]
-	pop  {PC}*/
-
-/*led_off:
-	push {LR}
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_ODR]
-	mov  R2, #0x0000
-	and  R1, R2
-	str  R1, [R0, #GPIOx_ODR]
-	pop  {PC}*/
-
+// inputs: R0 - button state
 button:
-	push {LR}
-	ldr  R0, =PORTA_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_IDR]
+	push {R1, R2, LR}
+	ldr  R1, =PORTA_BASE_ADDR
+	ldr  R0, [R1, #GPIOx_IDR]
 	mov  R2, #0x1
-	and  R1, R2
-	pop  {PC}
+	and  R0, R2
+	pop  {R1, R2, PC}
 
 // inputs: R0 - Bit index for the choosen Port Index
 gpio_clock_enable:
