@@ -33,13 +33,52 @@ lcd_init:
 	mov  R0, #LCD_DATA_PORT
 	bl   gpio_clock_enable
 
+	mov  R0, #100
+	bl   lcd_wait
+
+	mov  R0, #0b0011
+	bl   lcd_write_4bits
+
+	mov  R0, #5
+	bl   lcd_wait
+
+	mov  R0, #0b0011
+	bl   lcd_write_4bits
+
+	mov  R0, #100
+	bl   lcd_wait
+
+	mov  R0, #0b0011
+	bl   lcd_write_4bits
+
+	mov  R0, #100
+	bl   lcd_wait
+
+	mov  R0, #0b0010
+	bl   lcd_write_4bits
+
+	mov  R0, #100
+	bl   lcd_wait
+
 	// prepare the function set instruction into R0
 	mov  R0, #0b00101000
 	bl   lcd_write_instruction
 
 	// display on/off instruction
-	mov  R0, #0b00001110
-	//bl   lcd_write_instruction
+	mov  R0, #0b00001000
+	bl   lcd_write_instruction
+
+	// clear display
+	mov  R0, #0b00000001
+	bl   lcd_write_instruction
+
+	// entry mode set instruction
+	mov  R0, #0b00000110
+	bl   lcd_write_instruction
+
+	// display on/off instruction
+	mov  R0, #0b00001100
+	bl   lcd_write_instruction
 
 	pop  {R0, R1, R2, PC}
 
@@ -96,18 +135,24 @@ lcd_busy_wait:
 _lcd_busy_loop:
 	// read the first 4 bits
 	bl   lcd_enable_high
+	mov  R0, #1
 	bl   lcd_wait
+
 	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_IDR]
 	bl   lcd_enable_low
 
 	bfi  R2, R1, #4, #4
 
+	mov  R0, #1
 	bl   lcd_wait
 
 	// read the last 4 bits
 	bl   lcd_enable_high
+	mov  R0, #1
 	bl   lcd_wait
+
+	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_IDR]
 	bl   lcd_enable_low
 
@@ -165,22 +210,11 @@ lcd_write_data:
 	mov  R0, #0b10
 	bl   lcd_set_control
 
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_ODR]
-	bfi  R1, R2, #4, #4
-	str  R1, [R0, #GPIOx_ODR]
+	lsr  R0, R2, #4
+	bl   lcd_write_4bits
 
-	bl   lcd_enable_high
-	bl   lcd_wait
-	bl   lcd_enable_low
-
-	ldr  R1, [R0, #GPIOx_ODR]
-	bfi  R1, R2, #0, #4
-	str  R1, [R0, #GPIOx_ODR]
-
-	bl   lcd_enable_high
-	bl   lcd_wait
-	bl   lcd_enable_low
+	mov  R0, R2
+	bl   lcd_write_4bits
 
 	pop  {R0-R2, PC}
 
@@ -198,30 +232,45 @@ lcd_write_instruction:
 	mov  R0, #0b00
 	bl   lcd_set_control
 
-	ldr  R0, =PORTC_BASE_ADDR
-	ldr  R1, [R0, #GPIOx_ODR]
-	bfi  R1, R2, #4, #4
-	str  R1, [R0, #GPIOx_ODR]
+	lsr  R0, R2, #4
+	bl   lcd_write_4bits
 
-	bl   lcd_enable_high
-	bl   lcd_wait
-	bl   lcd_enable_low
-
-	ldr  R1, [R0, #GPIOx_ODR]
-	bfi  R1, R2, #0, #4
-	str  R1, [R0, #GPIOx_ODR]
-
-	bl   lcd_enable_high
-	bl   lcd_wait
-	bl   lcd_enable_low
+	mov  R0, R2
+	bl   lcd_write_4bits
 
 	pop  {R0-R2, PC}
 
-	// wait 1 millisecond
+// R0 - no of miliseconds
+// 1 ms
 lcd_wait:
 	push {R3, LR}
-	ldr  R3, =1000
+	ldr  R3, =4000
+	mul  R3, R0
 	_wait_loop:
 		subs  R3, #1
 		bne _wait_loop
 	pop  {R3, PC}
+
+lcd_enable_toggle:
+	push {R0, LR}
+
+	bl   lcd_enable_high
+	mov  R0, #1
+	bl   lcd_wait
+	bl   lcd_enable_low
+
+	pop  {R0, PC}
+
+// R0 - 4 bits to be written
+lcd_write_4bits:
+	push {R0-R2, LR}
+
+	// store in R2 the current value of PORTC
+	ldr  R1, =PORTC_BASE_ADDR
+	ldr  R2, [R1, #GPIOx_ODR]
+	bfi  R2, R0, #0, #4
+	str  R2, [R1, #GPIOx_ODR]
+
+	bl   lcd_enable_toggle
+
+	pop  {R0-R2, PC}

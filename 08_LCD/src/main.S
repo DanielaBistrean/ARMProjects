@@ -6,9 +6,6 @@
 .word 0x20001000
 .word main
 
-@ Mode [x:x] = 10
-@ CNF  [x:x] = 00
-
 #include "gpio_defs.S"
 
 .global main
@@ -18,15 +15,15 @@ main:
 
 
 loop:
-	mov R0, #1
-	bl  lcd_write_instruction
+	//mov R0, #0b00000001
+	//bl  lcd_write_instruction
 
-	mov R0, #2
-	bl  lcd_write_instruction
+	//mov R0, #0b00000010
+	//bl  lcd_write_instruction
 
-	bl  wait
+	//bl  wait
 
-	mov R0, #0b11001100
+	mov R0, #65
 	bl  lcd_write_data
 
 	bl  wait
