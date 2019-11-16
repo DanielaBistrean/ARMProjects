@@ -6,6 +6,9 @@
 .word 0x20001000
 .word main
 
+my_string:
+	.asciz "Hello, world!"
+
 #include "gpio_defs.S"
 
 .global main
@@ -15,16 +18,16 @@ main:
 
 
 loop:
-	//mov R0, #0b00000001
-	//bl  lcd_write_instruction
+	mov R0, #0b00000001
+	bl  lcd_write_instruction
 
-	//mov R0, #0b00000010
-	//bl  lcd_write_instruction
+	mov R0, #0b00000010
+	bl  lcd_write_instruction
 
-	//bl  wait
+	bl  wait
 
-	mov R0, #65
-	bl  lcd_write_data
+	ldr R0, =my_string
+	bl  lcd_print
 
 	bl  wait
 

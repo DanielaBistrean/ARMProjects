@@ -135,23 +135,16 @@ lcd_busy_wait:
 _lcd_busy_loop:
 	// read the first 4 bits
 	bl   lcd_enable_high
-	mov  R0, #1
-	bl   lcd_wait
-
 	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_IDR]
 	bl   lcd_enable_low
 
 	bfi  R2, R1, #4, #4
-
 	mov  R0, #1
 	bl   lcd_wait
 
 	// read the last 4 bits
 	bl   lcd_enable_high
-	mov  R0, #1
-	bl   lcd_wait
-
 	ldr  R0, =PORTC_BASE_ADDR
 	ldr  R1, [R0, #GPIOx_IDR]
 	bl   lcd_enable_low
@@ -255,8 +248,8 @@ lcd_enable_toggle:
 	push {R0, LR}
 
 	bl   lcd_enable_high
-	mov  R0, #1
-	bl   lcd_wait
+	//mov  R0, #1
+	//bl   lcd_wait
 	bl   lcd_enable_low
 
 	pop  {R0, PC}
@@ -274,3 +267,23 @@ lcd_write_4bits:
 	bl   lcd_enable_toggle
 
 	pop  {R0-R2, PC}
+
+// R0 - address to the beginning of a zero terminated string
+.global lcd_print
+lcd_print:
+	push  {R0-R1, LR}
+
+	mov   R1, R0
+
+_print:
+	// load only one byte
+	ldrb  R0, [R1]
+	cmp   R0, #0
+	beq   _exit
+
+	bl    lcd_write_data
+	add   R1, #1
+	b     _print
+
+_exit:
+	pop   {R0-R1, PC}
