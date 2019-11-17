@@ -18,11 +18,8 @@ main:
 
 
 loop:
-	mov R0, #0b00000001
-	bl  lcd_write_instruction
-
-	mov R0, #0b00000010
-	bl  lcd_write_instruction
+	bl  lcd_clear
+	bl  lcd_return_home
 
 	bl  wait
 

@@ -69,8 +69,7 @@ lcd_init:
 	bl   lcd_write_instruction
 
 	// clear display
-	mov  R0, #0b00000001
-	bl   lcd_write_instruction
+	bl   lcd_clear
 
 	// entry mode set instruction
 	mov  R0, #0b00000110
@@ -140,6 +139,7 @@ _lcd_busy_loop:
 	bl   lcd_enable_low
 
 	bfi  R2, R1, #4, #4
+
 	mov  R0, #1
 	bl   lcd_wait
 
@@ -245,14 +245,14 @@ lcd_wait:
 	pop  {R3, PC}
 
 lcd_enable_toggle:
-	push {R0, LR}
+	push {LR}
 
 	bl   lcd_enable_high
 	//mov  R0, #1
 	//bl   lcd_wait
 	bl   lcd_enable_low
 
-	pop  {R0, PC}
+	pop  {PC}
 
 // R0 - 4 bits to be written
 lcd_write_4bits:
@@ -287,3 +287,18 @@ _print:
 
 _exit:
 	pop   {R0-R1, PC}
+
+.global lcd_clear
+lcd_clear:
+	push  {R0, LR}
+	mov   R0, #0b00000001
+	bl    lcd_write_instruction
+	pop   {R0, PC}
+
+.global lcd_return_home
+lcd_return_home:
+	push  {R0, LR}
+	mov   R0, #0b00000010
+	bl    lcd_write_instruction
+	pop   {R0, PC}
+
