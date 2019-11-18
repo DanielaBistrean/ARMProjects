@@ -61,8 +61,8 @@ lcd_init:
 	bl   lcd_wait
 
 	// prepare the function set instruction into R0
-	mov  R0, #0b00101000
-	bl   lcd_write_instruction
+	mov   R0, #0b00101000
+	bl    lcd_write_instruction
 
 	// display on/off instruction
 	mov  R0, #0b00001000
@@ -80,7 +80,6 @@ lcd_init:
 	bl   lcd_write_instruction
 
 	pop  {R0, R1, R2, PC}
-
 
 lcd_set_data_in:
 	push {R0, R1, R2, LR}
@@ -302,3 +301,59 @@ lcd_return_home:
 	bl    lcd_write_instruction
 	pop   {R0, PC}
 
+lcd_write_2lines:
+	push  {R0, LR}
+
+	// prepare the function set instruction into R0
+	mov   R0, #0b00101000
+	bl    lcd_write_instruction
+
+	pop   {R0, PC}
+
+lcd_write_1line:
+	push  {R0, LR}
+
+	// prepare the function set instruction into R0
+	mov   R0, #0b00100000
+	bl    lcd_write_instruction
+
+	pop   {R0, PC}
+
+lcd_move_cursor_left:
+	push  {R0, LR}
+
+	mov   R0, #0b00010000
+	bl    lcd_write_instruction
+
+	pop   {R0, PC}
+
+lcd_move_cursor_right:
+	push  {R0, LR}
+
+	mov   R0, #0b00010100
+	bl    lcd_write_instruction
+
+	pop   {R0, PC}
+
+.global lcd_cursor_on
+lcd_cursor_on:
+	push  {R0, LR}
+
+	mov   R0, #0b00001110
+	bl    lcd_write_instruction
+
+	pop   {R0, PC}
+
+// R0 - store the entire string
+.global lcd_delete_char
+lcd_delete_char:
+	push  {R0, LR}
+
+	bl   lcd_move_cursor_left
+
+	mov  R0, #0b0010000
+	bl   lcd_write_data
+
+	bl   lcd_move_cursor_left
+
+	pop   {R0, PC}
