@@ -6,11 +6,11 @@
 .word 0x20001000
 .word main
 
-my_strings:
-	.asciz "Hello, world!"
-
 my_string:
 	.asciz "a"
+
+my_string2:
+	.asciz "Hello"
 
 #include "gpio_defs.S"
 
@@ -20,19 +20,14 @@ main:
 	bl  lcd_init
 	bl  lcd_cursor_on
 
+	ldr R0, =my_string2
+	bl  lcd_print
+
+	bl  lcd_goto_next_line
 
 loop:
-	//bl  lcd_clear
-	//bl  lcd_return_home
-
-	//bl  wait
-
-	//bl  lcd_cursor_on
-
-
 
 	ldr R0, =my_string
-	//ldr R0, =0b01100101
 	bl  lcd_print
 
 	bl  wait
@@ -40,13 +35,10 @@ loop:
 	ldr R0, =my_string
 	bl  lcd_print
 
-	//bl  lcd_cursor_on
 	bl  wait
-
 
 	bl  lcd_delete_char
 	bl  wait
-
 
 	b loop
 

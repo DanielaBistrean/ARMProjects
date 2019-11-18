@@ -9,6 +9,10 @@
 .equ LCD_DATA_PORT, 2
 .equ LCD_CTRL_PORT, 1
 
+.data
+lcd_cursor:
+	.byte 0
+
 .text
 .global lcd_init
 lcd_init:
@@ -61,8 +65,8 @@ lcd_init:
 	bl   lcd_wait
 
 	// prepare the function set instruction into R0
-	mov   R0, #0b00101000
-	bl    lcd_write_instruction
+	mov  R0, #0b00101000
+	bl   lcd_write_instruction
 
 	// display on/off instruction
 	mov  R0, #0b00001000
@@ -78,6 +82,10 @@ lcd_init:
 	// display on/off instruction
 	mov  R0, #0b00001100
 	bl   lcd_write_instruction
+
+	ldr  R0, =lcd_cursor
+	mov  R1, #0
+	strb R1, [R0]
 
 	pop  {R0, R1, R2, PC}
 
@@ -270,7 +278,11 @@ lcd_write_4bits:
 // R0 - address to the beginning of a zero terminated string
 .global lcd_print
 lcd_print:
-	push  {R0-R1, LR}
+	push  {R0-R3, LR}
+
+	// R2 = current cursor position
+	ldr   R3, =lcd_cursor
+	ldrb  R2, [R3]
 
 	mov   R1, R0
 
@@ -281,11 +293,16 @@ _print:
 	beq   _exit
 
 	bl    lcd_write_data
+	// increment the cursor value
+	add   R2, #1
+	// go to the next char
 	add   R1, #1
 	b     _print
 
 _exit:
-	pop   {R0-R1, PC}
+	strb  R2, [R3]
+
+	pop   {R0-R3, PC}
 
 .global lcd_clear
 lcd_clear:
@@ -296,10 +313,15 @@ lcd_clear:
 
 .global lcd_return_home
 lcd_return_home:
-	push  {R0, LR}
+	push  {R0, R1, LR}
 	mov   R0, #0b00000010
 	bl    lcd_write_instruction
-	pop   {R0, PC}
+
+	ldr   R1, =lcd_cursor
+	mov   R0, #0
+	strb  R0, [R1]
+
+	pop   {R0, R1, PC}
 
 lcd_write_2lines:
 	push  {R0, LR}
@@ -320,20 +342,30 @@ lcd_write_1line:
 	pop   {R0, PC}
 
 lcd_move_cursor_left:
-	push  {R0, LR}
+	push  {R0, R1, LR}
 
 	mov   R0, #0b00010000
 	bl    lcd_write_instruction
 
-	pop   {R0, PC}
+	ldr   R1, =lcd_cursor
+	ldrb  R0, [R1]
+	sub   R0, #1
+	strb  R0, [R1]
+
+	pop   {R0, R1, PC}
 
 lcd_move_cursor_right:
-	push  {R0, LR}
+	push  {R0, R1, LR}
 
 	mov   R0, #0b00010100
 	bl    lcd_write_instruction
 
-	pop   {R0, PC}
+	ldr   R1, =lcd_cursor
+	ldrb  R0, [R1]
+	add   R1, #1
+	strb  R0, [R1]
+
+	pop   {R0, R1, PC}
 
 .global lcd_cursor_on
 lcd_cursor_on:
@@ -344,7 +376,6 @@ lcd_cursor_on:
 
 	pop   {R0, PC}
 
-// R0 - store the entire string
 .global lcd_delete_char
 lcd_delete_char:
 	push  {R0, LR}
@@ -357,3 +388,30 @@ lcd_delete_char:
 	bl   lcd_move_cursor_left
 
 	pop   {R0, PC}
+
+.global lcd_goto_next_line
+lcd_goto_next_line:
+	push  {R0, R1, LR}
+
+	ldr   R0, =lcd_cursor
+	ldrb  R1, [R0]
+
+	cmp   R1, #40
+	beq   _lcd_goto_next_line_exit
+
+_goto_next_line_loop:
+	bl    lcd_move_cursor_right
+	add   R1, #1
+
+	cmp   R1, #80
+	moveq R1, #0
+
+	cmp   R1, #40
+	bne   _goto_next_line_loop
+
+_lcd_goto_next_line_exit:
+	strb  R1, [R0]
+	pop   {R0, R1, PC}
+
+lcd_print_1digit:
+	push
