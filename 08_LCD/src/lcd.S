@@ -413,5 +413,43 @@ _lcd_goto_next_line_exit:
 	strb  R1, [R0]
 	pop   {R0, R1, PC}
 
-lcd_print_1digit:
-	push
+// R0 - digit to be printted
+.global lcd_print_1digit_dec
+lcd_print_1digit_dec:
+	push {R0-R1, LR}
+
+	add  R0, R0, #48
+	bl   lcd_write_data
+
+	pop  {R0-R1, PC}
+
+// // R0 - number to be printted
+.global lcd_print_number
+lcd_print_number:
+	push {R0-R5, LR}
+
+	mov  R5, #0
+
+_lcd_print_number_loop:
+
+	// modulo
+	mov  R2, #10
+	udiv R1, R0, R2
+	mul  R3, R1, R2
+	sub  R4, R0, R3
+
+	push {R4}
+	add  R5, #1
+
+	mov  R0, R1
+	cmp  R0, #0
+	bne  _lcd_print_number_loop
+
+_lcd_print_in_reverse:
+	pop  {R0}
+	bl   lcd_print_1digit_dec
+	subs R5, #1
+	bne  _lcd_print_in_reverse
+
+_lcd_print_number_exit:
+	pop  {R0-R5, PC}

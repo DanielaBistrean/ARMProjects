@@ -25,20 +25,11 @@ main:
 
 	bl  lcd_goto_next_line
 
+	ldr R0, =0x210427B
+	bl  lcd_print_number
+	bl  wait
+
 loop:
-
-	ldr R0, =my_string
-	bl  lcd_print
-
-	bl  wait
-
-	ldr R0, =my_string
-	bl  lcd_print
-
-	bl  wait
-
-	bl  lcd_delete_char
-	bl  wait
 
 	b loop
 
