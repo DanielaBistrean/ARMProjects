@@ -20,14 +20,22 @@ main:
 	bl  lcd_init
 	bl  lcd_cursor_on
 
-	ldr R0, =my_string2
-	bl  lcd_print
+	ldr R0, =430
+	mov R1, #16
+	bl  lcd_print_number
+	bl  wait
 
 	bl  lcd_goto_next_line
 
-	ldr R0, =0x210427B
+	/*mov R0, #15
+	bl  lcd_print_1digit_hex
+	bl  wait*/
+
+	ldr R0, =430
+	mov R1, #2
 	bl  lcd_print_number
 	bl  wait
+
 
 loop:
 

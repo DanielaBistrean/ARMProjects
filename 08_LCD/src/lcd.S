@@ -10,8 +10,33 @@
 .equ LCD_CTRL_PORT, 1
 
 .data
+.align 1
 lcd_cursor:
 	.byte 0
+
+.text
+.section .rodata
+.align 4
+_lcd_print_digit_table:
+	.word lcd_print_1digit_dec  // base 2
+	.word lcd_print_1digit_dec  // base 3
+	.word lcd_print_1digit_dec  // base 4
+	.word lcd_print_1digit_dec  // base 5
+	.word lcd_print_1digit_dec  // base 6
+	.word lcd_print_1digit_dec  // base 7
+	.word lcd_print_1digit_dec  // base 8
+	.word lcd_print_1digit_dec  // base 9
+	.word lcd_print_1digit_dec  // base 10
+	.word lcd_print_1digit_noop // base 11
+	.word lcd_print_1digit_noop // base 12
+	.word lcd_print_1digit_noop // base 13
+	.word lcd_print_1digit_noop // base 14
+	.word lcd_print_1digit_noop // base 15
+	.word lcd_print_1digit_hex  // base 16
+
+.align 4
+lcd_print_digit_table:
+	.word _lcd_print_digit_table
 
 .text
 .global lcd_init
@@ -199,7 +224,7 @@ lcd_set_control:
 // R0 - one byte of data to send
 .global lcd_write_data
 lcd_write_data:
-	push {R0-R2, LR}
+	push {R0-R3, LR}
 
 	bl   lcd_busy_wait
 
@@ -216,7 +241,14 @@ lcd_write_data:
 	mov  R0, R2
 	bl   lcd_write_4bits
 
-	pop  {R0-R2, PC}
+	// R2 = current cursor position
+	ldr   R3, =lcd_cursor
+	ldrb  R2, [R3]
+	// increment the cursor value
+	add   R2, #1
+	strb  R2, [R3]
+
+	pop  {R0-R3, PC}
 
 // R0 - one byte of data to send
 .global lcd_write_instruction
@@ -280,10 +312,6 @@ lcd_write_4bits:
 lcd_print:
 	push  {R0-R3, LR}
 
-	// R2 = current cursor position
-	ldr   R3, =lcd_cursor
-	ldrb  R2, [R3]
-
 	mov   R1, R0
 
 _print:
@@ -293,15 +321,12 @@ _print:
 	beq   _exit
 
 	bl    lcd_write_data
-	// increment the cursor value
-	add   R2, #1
+
 	// go to the next char
 	add   R1, #1
 	b     _print
 
 _exit:
-	strb  R2, [R3]
-
 	pop   {R0-R3, PC}
 
 .global lcd_clear
@@ -414,26 +439,26 @@ _lcd_goto_next_line_exit:
 	pop   {R0, R1, PC}
 
 // R0 - digit to be printted
-.global lcd_print_1digit_dec
 lcd_print_1digit_dec:
-	push {R0-R1, LR}
+	push {R0, LR}
 
 	add  R0, R0, #48
 	bl   lcd_write_data
 
-	pop  {R0-R1, PC}
+	pop  {R0, PC}
 
-// // R0 - number to be printted
+// R0 - number to be printted
+// R1 - base
 .global lcd_print_number
 lcd_print_number:
 	push {R0-R5, LR}
 
 	mov  R5, #0
+	mov  R2, R1
 
 _lcd_print_number_loop:
 
 	// modulo
-	mov  R2, #10
 	udiv R1, R0, R2
 	mul  R3, R1, R2
 	sub  R4, R0, R3
@@ -445,11 +470,64 @@ _lcd_print_number_loop:
 	cmp  R0, #0
 	bne  _lcd_print_number_loop
 
-_lcd_print_in_reverse:
+_debug1:
+	ldr  R0, =_lcd_print_digit_table
+	sub  R2, #2        // calculate the offset in jmp table
+	lsl  R2, R2, #2    // transform the offset in bytes
+	ldr  R3, [R0, R2]  // load the print digit fct addr
+	add  R3, #1
+
+_lcd_print_dec_in_reverse:
 	pop  {R0}
-	bl   lcd_print_1digit_dec
+	blx  R3
 	subs R5, #1
-	bne  _lcd_print_in_reverse
+	bne  _lcd_print_dec_in_reverse
 
 _lcd_print_number_exit:
+	pop  {R0-R5, PC}
+
+// R0 - digit to be printted
+.global lcd_print_1digit_hex
+lcd_print_1digit_hex:
+	push {R0, LR}
+
+	cmp   R0, #9
+	addle R0, R0, #48
+	addgt R0, R0, #55
+	bl    lcd_write_data
+
+_lcd_print_1digit_hex_exit:
+	pop  {R0, PC}
+
+lcd_print_1digit_noop:
+	mov  PC, LR
+
+// R0 - decimal digit
+.global lcd_print_number_hex
+lcd_print_number_hex:
+	push {R0-R5, LR}
+
+	mov  R5, #0
+
+_lcd_print_number_hex_loop:
+	mov  R2, #16
+
+	udiv R1, R0, R2
+	mul  R3, R1, R2
+	sub  R4, R0, R3
+
+	push {R4}
+	add  R5, #1
+
+	mov  R0, R1
+	cmp  R0, #0
+	bne  _lcd_print_number_hex_loop
+
+_lcd_print_hex_in_reverse:
+	pop  {R0}
+	bl   lcd_print_1digit_hex
+	subs R5, #1
+	bne  _lcd_print_hex_in_reverse
+
+_lcd_print_number_hex_exit:
 	pop  {R0-R5, PC}
