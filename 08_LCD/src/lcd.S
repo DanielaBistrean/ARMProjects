@@ -531,3 +531,12 @@ _lcd_print_hex_in_reverse:
 
 _lcd_print_number_hex_exit:
 	pop  {R0-R5, PC}
+
+.global lcd_move_cursor
+lcd_move_cursor:
+	push {R0, LR}
+
+	orr  R0, #0x80
+	bl   lcd_write_instruction
+
+	pop   {R0, PC}
