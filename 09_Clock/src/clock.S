@@ -2,37 +2,34 @@
 
 .data
 .align 1
-hour:
-	.byte 0
-minutes:
-	.byte 0
-seconds:
-	.byte 0
+time:
+	.word 0
 
 .text
 
 .global clock_reset
 clock_reset:
-	push {R0, LR}
+	push {R0-R1, LR}
 
-	ldr  R1, =hour
+	ldr  R1, =time
 	mov  R0, #0
-	strb R0, [R1]
+	str  R0, [R1]
 
-	ldr  R1, =minutes
-	strb R0, [R1]
-
-	ldr  R1, =seconds
-	strb R0, [R1]
-
-	pop  {R0, PC}
+	pop  {R0-R1, PC}
 
 .global print_time
 print_time:
 	push {R0, LR}
 
-	ldr  R1, =hour
-	ldrb R0, [R1]
+	ldr  R1, =time
+	ldr  R0, [R1]
+
+	mov  R3, R0
+
+	mov  R2, #3600
+	udiv R0, R3, R2
+	mov  R1, #24
+	bl   compute_modulo
 
 	cmp  R0, #10
 	bllt clock_fill_zero
@@ -43,20 +40,24 @@ print_time:
 	mov  R0, ':'
 	bl   lcd_write_data
 
-	ldr  R1, =minutes
-	ldrb R0, [R1]
+	mov  R1, #60
+	udiv R0, R3, R1
+	bl   compute_modulo
 
 	cmp  R0, #10
 	bllt clock_fill_zero
 
+	push {R1}
 	mov  R1, #10
 	bl   lcd_print_number
+	pop  {R1}
 
 	mov  R0, ':'
 	bl   lcd_write_data
 
-	ldr  R1, =seconds
-	ldrb R0, [R1]
+	mov  R0, R3
+	mov  R1, #60
+	bl   compute_modulo
 
 	cmp  R0, #10
 	bllt clock_fill_zero
@@ -74,40 +75,35 @@ clock_fill_zero:
 
 	pop  {R0, PC}
 
-// R0
+// inputs: R0, R1
+// outputs:
+//          R1 <- R0/R1
+//          R0 <- R0%R1
+compute_modulo:
+	push {R2-R3, LR}
+
+	mov  R3, R0
+
+	udiv R0, R1
+
+	mul  R2, R0, R1
+	sub  R1, R3, R2
+
+	mov  R3, R0
+	mov  R0, R1
+	mov  R1, R3
+
+	pop  {R2-R3, PC}
+
 .global clock_tick
 clock_tick:
-	push {R0, LR}
+	push {R0-R1, LR}
 
-	ldr    R0, =seconds
-	ldrb   R1, [R0]
+	ldr  R0, =time
+	ldr  R1, [R0]
 
-	add    R1, #1
-	cmp    R1, #60
-	strbne R1, [R0]
-	bne    _clock_tick_exit
+	add  R1, #1
 
-	mov    R1, #0
-	strb   R1, [R0]
+	str  R1, [R0]
 
-	ldr    R0, =minutes
-	ldrb   R1, [R0]
-
-	add    R1, #1
-	cmp    R1, #60
-	strbne R1, [R0]
-	bne    _clock_tick_exit
-
-	mov    R1, #0
-	strb   R1, [R0]
-
-	ldr    R0, =hour
-	ldrb   R1, [R0]
-
-	add    R1, #1
-	cmp    R1, #24
-	moveq  R1, #0
-	strb   R1, [R0]
-
-_clock_tick_exit:
-	pop  {R0, PC}
+	pop  {R0-R1, PC}
