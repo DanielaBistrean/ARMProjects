@@ -15,30 +15,6 @@ lcd_cursor:
 	.byte 0
 
 .text
-.section .rodata
-.align 4
-_lcd_print_digit_table:
-	.word lcd_print_1digit_dec  // base 2
-	.word lcd_print_1digit_dec  // base 3
-	.word lcd_print_1digit_dec  // base 4
-	.word lcd_print_1digit_dec  // base 5
-	.word lcd_print_1digit_dec  // base 6
-	.word lcd_print_1digit_dec  // base 7
-	.word lcd_print_1digit_dec  // base 8
-	.word lcd_print_1digit_dec  // base 9
-	.word lcd_print_1digit_dec  // base 10
-	.word lcd_print_1digit_noop // base 11
-	.word lcd_print_1digit_noop // base 12
-	.word lcd_print_1digit_noop // base 13
-	.word lcd_print_1digit_noop // base 14
-	.word lcd_print_1digit_noop // base 15
-	.word lcd_print_1digit_hex  // base 16
-
-.align 4
-lcd_print_digit_table:
-	.word _lcd_print_digit_table
-
-.text
 .global lcd_init
 lcd_init:
 	push {R0, R1, R2, LR}
@@ -474,16 +450,9 @@ _lcd_print_number_loop:
 	cmp  R0, #0
 	bne  _lcd_print_number_loop
 
-_debug1:
-	ldr  R0, =_lcd_print_digit_table
-	sub  R2, #2        // calculate the offset in jmp table
-	lsl  R2, R2, #2    // transform the offset in bytes
-	ldr  R3, [R0, R2]  // load the print digit fct addr
-	add  R3, #1
-
 _lcd_print_dec_in_reverse:
 	pop  {R0}
-	blx  R3
+	bl   lcd_print_1digit_hex
 	subs R5, #1
 	bne  _lcd_print_dec_in_reverse
 
