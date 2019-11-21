@@ -1,0 +1,12 @@
+// clock enable register
+.equ RCC_BASE_ADDR, 0x40021000
+.equ RCC_APB2ENR, 0x18
+
+.equ GPIOx_CRH, 0x4
+.equ GPIOx_CRL, 0x00
+.equ GPIOx_IDR, 0x08
+.equ GPIOx_ODR, 0xc
+
+.equ PORTA_BASE_ADDR, 0x40010800
+.equ PORTB_BASE_ADDR, 0x40010C00
+.equ PORTC_BASE_ADDR, 0x40011000
