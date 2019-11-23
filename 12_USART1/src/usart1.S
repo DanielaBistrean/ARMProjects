@@ -1,4 +1,7 @@
 .syntax unified
+.thumb
+
+#include "gpio_defs.S"
 
 .equ USART1_BASE_ADDR, 0x40013800
 .equ USART_DR, 0x04
@@ -13,7 +16,14 @@ USART1_init:
 
 	mov   R0, #0
 	bl    gpio_clock_enable
+	
+	ldr   R0, =RCC_BASE_ADDR
+	ldr   R1, =0x4001 // enable AFIO + USART clock
+	ldr   R2, [R0, #RCC_APB2ENR]
+	orr   R2, R1
+	str   R2, [R0, #RCC_APB2ENR]
 
+	mov   R0, #0
 	mov   R1, #9
 	mov   R2, #0b1010 // alternate output
 	bl    gpio_configure
@@ -23,11 +33,11 @@ USART1_init:
 	bl    gpio_configure
 
 	ldr   R0, =USART1_BASE_ADDR
-	mov   R1, #0xF5
+	mov   R1, #0x45
 	str   R1, [R0, #USART_BRR]
 
 	ldr   R0, =USART1_BASE_ADDR
-	mov   R1, #0x200C
+	mov   R1, #0x200C // enable UE + TE + RE
 	str   R1, [R0, #USART_CR1]
 
 	mov   R1, #3
