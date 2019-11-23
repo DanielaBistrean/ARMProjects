@@ -36,9 +36,11 @@ print_time:
 
 	mov  R1, #10
 	bl   lcd_print_number
+	bl   usart_print_number
 
 	mov  R0, ':'
 	bl   lcd_write_data
+	bl   USART1_putc
 
 	mov  R1, #60
 	udiv R0, R3, R1
@@ -50,10 +52,12 @@ print_time:
 	push {R1}
 	mov  R1, #10
 	bl   lcd_print_number
+	bl   usart_print_number
 	pop  {R1}
 
 	mov  R0, ':'
 	bl   lcd_write_data
+	bl   USART1_putc
 
 	mov  R0, R3
 	mov  R1, #60
@@ -64,6 +68,7 @@ print_time:
 
 	mov  R1, #10
 	bl   lcd_print_number
+	bl   usart_print_number
 
 	pop  {R0, PC}
 
@@ -72,6 +77,7 @@ clock_fill_zero:
 
 	mov  R0, '0'
 	bl   lcd_write_data
+	bl   USART1_putc
 
 	pop  {R0, PC}
 

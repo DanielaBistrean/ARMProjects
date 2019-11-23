@@ -31,6 +31,7 @@ vectors:
 main:
 	bl  button_cfg
 
+	bl  USART1_init
 	bl  lcd_init
 
 	bl  lcd_write_1line
@@ -39,10 +40,6 @@ main:
 	bl  print_time
 
 	bl  SysTick_init
-
-	bl  USART1_init
-	mov R0, 'B'
-	bl  USART1_putc
 
 loop:
 	bl   read_button_state
@@ -57,6 +54,7 @@ loop:
 
 _update_time:
 	bl   lcd_return_home
+	bl   usart_return_home
 	bl   print_time
 
 	b  loop

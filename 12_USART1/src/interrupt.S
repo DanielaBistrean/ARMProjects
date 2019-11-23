@@ -13,8 +13,6 @@ ISR_SysTick:
 	push {LR}
 
 	bl   clock_tick
-	mov R0, 'B'
-	bl  USART1_putc
 
 	pop  {PC}
 
