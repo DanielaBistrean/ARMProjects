@@ -61,6 +61,20 @@ _USART1_putc_busy:
 
 	pop  {R1-R2, PC}
 
+.global USART1_getc
+USART1_getc:
+	push  {R1, LR}
+
+	ldr   R1, =USART1_BASE_ADDR
+_USART1_getc_busy:
+	ldr   R0, [R1, #USART_SR]
+	ands  R0, #0x20
+	beq   _USART1_getc_busy
+
+	ldr   R0, [R1, #USART_DR]
+
+	pop   {R1, PC}
+
 // R0 - number to be printted
 // R1 - base
 .global usart_print_number

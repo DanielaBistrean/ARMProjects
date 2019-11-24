@@ -513,3 +513,61 @@ lcd_move_cursor:
 	bl   lcd_write_instruction
 
 	pop   {R0, PC}
+
+// put the current cursor possition in R0
+.global lcd_get_cursor
+lcd_get_cursor:
+	push  {R1-R2, LR}
+
+	// R2 holds the status register of the LCD
+	mov  R2, #0
+
+	mov  R0, #0b01
+	bl   lcd_set_control
+
+	bl   lcd_set_data_in
+
+	// read the first 4 bits
+	bl   lcd_enable_high
+	ldr  R0, =PORTC_BASE_ADDR
+	ldr  R1, [R0, #GPIOx_IDR]
+	bl   lcd_enable_low
+
+	bfi  R2, R1, #4, #4
+
+	mov  R0, #1
+	bl   lcd_wait
+
+	// read the last 4 bits
+	bl   lcd_enable_high
+	ldr  R0, =PORTC_BASE_ADDR
+	ldr  R1, [R0, #GPIOx_IDR]
+	bl   lcd_enable_low
+
+	bfi  R2, R1, #0, #4
+
+	//clear the status bit
+	and  R0, R2, #0x7f
+
+	pop  {R1-R2, PC}
+
+.global lcd_clear_line2
+lcd_clear_line2:
+	push {R0-R1, LR}
+
+	mov  R0, #40
+	bl   lcd_move_cursor
+
+	mov  R1, #0
+	mov  R0, ' '
+
+_lcd_clear_line2_loop:
+	bl   lcd_write_data
+	adds R1, #1
+	cmp  R1, #40
+	bne  _lcd_clear_line2_loop
+
+	mov  R0, #40
+	bl   lcd_move_cursor
+
+	pop  {R0-R1, PC}

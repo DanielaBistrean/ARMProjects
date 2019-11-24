@@ -15,9 +15,18 @@ ISR_SysTick:
 	push {LR}
 
 	bl   clock_tick
-	bl   lcd_return_home
+
+	bl   lcd_get_cursor
+	push {R0}
+
+	mov  R0, #0
+	bl   lcd_move_cursor
+
 	bl   usart_return_home
 	bl   print_time
+
+	pop  {R0}
+	bl   lcd_move_cursor
 
 	pop  {PC}
 
@@ -61,10 +70,18 @@ ISR_EXTI0:
 	push {R0-R1, LR}
 
 	bl   clock_reset
-	bl   lcd_return_home
+
+	bl   lcd_get_cursor
+	push {R0}
+
+	mov  R0, #0
+	bl   lcd_move_cursor
+
 	bl   usart_return_home
 	bl   print_time
 
+	pop  {R0}
+	bl   lcd_move_cursor
 	ldr  R0, =EXTI_BASE_ADDR
 	mov  R1, #1
 	str  R1, [R0, #EXTI_PR]
