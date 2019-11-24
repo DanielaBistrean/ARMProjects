@@ -1,8 +1,6 @@
 .syntax unified
 .thumb
 
-#include "gpio_defs.S"
-
 .text
 
 .global main

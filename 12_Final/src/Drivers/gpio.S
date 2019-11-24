@@ -1,5 +1,5 @@
 .syntax unified
-#include "gpio_defs.S"
+#include "../Include/gpio_defs.S"
 
 // inputs: R0 - Bit index for the choosen Port Index
 .text

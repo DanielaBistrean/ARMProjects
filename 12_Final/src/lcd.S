@@ -1,6 +1,6 @@
 .syntax unified
 
-#include "gpio_defs.S"
+#include "Include/gpio_defs.S"
 
 .equ LCD_RS, 1
 .equ LCD_RW, 0

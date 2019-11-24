@@ -1,7 +1,7 @@
 .syntax unified
 
-#include "gpio_defs.S"
-#include "interrupt_defs.S"
+#include "Include/gpio_defs.S"
+#include "Include/interrupt_defs.S"
 
 .text
 .global button_cfg
