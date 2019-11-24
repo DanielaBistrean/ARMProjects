@@ -1,5 +1,7 @@
 .syntax unified
 
+#include "interrupt_defs.S"
+
 .text
 
 .equ STK_BASE_ADDR, 0xE000E010
@@ -13,6 +15,9 @@ ISR_SysTick:
 	push {LR}
 
 	bl   clock_tick
+	bl   lcd_return_home
+	bl   usart_return_home
+	bl   print_time
 
 	pop  {PC}
 
@@ -25,7 +30,7 @@ ISR_BusFault:
 .thumb_func
 .global SysTick_init
 SysTick_init:
-	push {LR}
+	push {R0-R1, LR}
 
 	ldr  R1, =STK_BASE_ADDR
 
@@ -35,7 +40,7 @@ SysTick_init:
 	mov  R0, #7
 	str  R0, [R1, #STK_CTRL]
 
-	pop  {PC}
+	pop  {R0-R1, PC}
 
 // return into R0 the value of the countflag
 .thumb_func
@@ -49,4 +54,20 @@ SysTick_getStatus:
 	and  R0, #1
 
 	pop  {R1, PC}
+
+.thumb_func
+.global ISR_EXTI0
+ISR_EXTI0:
+	push {R0-R1, LR}
+
+	bl   clock_reset
+	bl   lcd_return_home
+	bl   usart_return_home
+	bl   print_time
+
+	ldr  R0, =EXTI_BASE_ADDR
+	mov  R1, #1
+	str  R1, [R0, #EXTI_PR]
+
+	pop  {R0-R1, PC}
 

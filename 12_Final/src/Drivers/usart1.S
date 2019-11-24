@@ -1,7 +1,7 @@
 .syntax unified
 .thumb
 
-#include "gpio_defs.S"
+#include "../gpio_defs.S"
 
 .equ USART1_BASE_ADDR, 0x40013800
 .equ USART_SR, 0x00
