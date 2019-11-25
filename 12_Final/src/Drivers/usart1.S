@@ -2,6 +2,7 @@
 .thumb
 
 #include "../Include/gpio_defs.S"
+#include "../Include/interrupt_defs.S"
 
 .equ USART1_BASE_ADDR, 0x40013800
 .equ USART_SR, 0x00
@@ -38,11 +39,13 @@ USART1_init:
 	str   R1, [R0, #USART_BRR]
 
 	ldr   R0, =USART1_BASE_ADDR
-	mov   R1, #0x200C // enable UE + TE + RE
+	mov   R1, #0x202C // enable UE + TE + RE + RXNEIE
 	str   R1, [R0, #USART_CR1]
 
-	mov   R1, #3
-	str   R1, [R0, #USART_DR]
+	ldr   R0, =NVIC_BASE_ADDR
+	ldr   R1, [R0, #NVIC_ISER1]
+	orr   R1, #(1 << 5)
+	str   R1, [R0, #NVIC_ISER1]
 
 	pop   {R0-R1, PC}
 
@@ -129,3 +132,18 @@ usart_return_home:
 	mov  R0, '\r'
 	bl   USART1_putc
 	pop  {R0, PC}
+
+.thumb_func
+.global ISR_USART1
+ISR_USART1:
+	bl   USART1_getc
+	// check if the char is ENTER (CR)
+	cmp  R0, '\r'
+	bne  print
+	bleq lcd_clear_line2
+	bx   LR
+
+print:
+	blne lcd_write_data
+	bx LR
+

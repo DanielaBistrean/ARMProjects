@@ -19,14 +19,5 @@ main:
 	bl  SysTick_init
 
 loop:
-	bl   USART1_getc
-	// check if the char is ENTER (CR)
-	cmp  R0, '\r'
-	bne  print
-	bleq lcd_clear_line2
-	b    loop
-
-print:
-	blne lcd_write_data
 
 	b  loop
