@@ -136,14 +136,26 @@ usart_return_home:
 .thumb_func
 .global ISR_USART1
 ISR_USART1:
+	push {R1, R2, LR}
+
 	bl   USART1_getc
+
 	// check if the char is ENTER (CR)
 	cmp  R0, '\r'
-	bne  print
-	bleq lcd_clear_line2
-	bx   LR
+	bne  _ISR_USART1_print
+	bl   lcd_clear_line2
+	b    _ISR_USART1_exit
 
-print:
-	blne lcd_write_data
-	bx LR
+_ISR_USART1_print:
 
+	push {R0}
+	bl   lcd_get_cursor
+	mov  R1, R0
+	pop  {R0}
+	cmp  R1, #79
+	bgt  _ISR_USART1_exit
+
+	bl   lcd_write_data
+_ISR_USART1_exit:
+	//bx LR
+	pop  {R1, R2, PC}
