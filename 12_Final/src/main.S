@@ -5,6 +5,7 @@
 
 .global main
 main:
+	bl  pwm_init
 	bl  button_cfg
 
 	bl  USART1_init

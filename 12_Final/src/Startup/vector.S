@@ -45,11 +45,11 @@ vectors:
 .word 0
 .word 0
 .word 0
-.word 0
-.word 0
-.word 0
-.word 0
-.word 0
+.word 0 //ISR_TIM1_BRK
+.word 0 //ISR_TIM1_UP
+.word 0 //ISR_TIM1_TRG_COM
+.word 0 //ISR_TIM1_CC
+.word 0 // ISR_TIM@
 .word 0
 .word 0
 .word 0

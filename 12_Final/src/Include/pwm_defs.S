@@ -1,0 +1,12 @@
+.equ TIM1_BASE_ADDR, 0x40012C00
+.equ TIM2_BASE_ADDR, 0x40000000
+.equ TIMx_CR1, 0x00
+.equ TIMx_EGR, 0x14
+.equ TIMx_ARR, 0x2C
+.equ TIMx_RCR, 0x30
+.equ TIMx_PSC, 0x28
+.equ TIMx_CNT, 0x24
+.equ TIMx_CCR1, 0x34
+.equ TIMx_CCMR1, 0x18
+.equ TIMx_BDTR, 0x44
+.equ TIMx_CCER, 0x20
