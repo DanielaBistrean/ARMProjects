@@ -25,16 +25,16 @@ pwm_init:
 
 	// auto-reload register - frequency
 	ldr  R0, =TIM1_BASE_ADDR
-	ldr  R1, =30000
+	ldr  R1, =0x29A9  // (system clocl/750) - 1
 	strh R1, [R0, #TIMx_ARR]
 
 	// capture/compare register - duty cycle
-	mov  R1, #20000
+	mov  R1, #0x14D4  // ((5 * (frequency - 1)) / 10)
 	strh R1, [R0, #TIMx_CCR1]
 
 	// set PWM mode 1
 	ldrh R1, [R0, #TIMx_CCMR1]
-	mov  R2, #0b110
+	mov  R2, #0b111
 	bfi  R1, R1, #4, #3
 	orr  R1, #(1 << 3)
 	strh R1, [R0, #TIMx_CCMR1]
